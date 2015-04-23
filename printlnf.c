@@ -1,20 +1,53 @@
 #include<stdio.h> 
 #include<stdarg.h>						
 
-void m_printf(char *,...);
-
+void m_puts(char *str);
+void m_putchar(const char c);
+void m_printf(char *format,...);
 
 int main(void) 
 { 
-	m_printf("My printf", 9);
+
+	char* s = "He ll ll ll oo o\n";
+	m_printf("Hello hello %s", s);
 
 	//register int counter asm("rdi");
-	//counter = 120;
+
 	
 	return 0;
 } 
 
 
+
+void m_puts(char *str){
+
+
+	int size = 0;
+	while(str[size] != '\0'){
+		size = size +1;
+	}
+
+	printf("\nSize- %d\n", size);
+
+
+	asm(
+		//Write syscall
+		"movq $1, %%rax\n\t"
+		//File descriptor (stdout is 0)		
+		"movq $0, %%rdi\n\t"
+		//The string to write
+		"movq %[character], %%rsi\n\t"
+		//Number of characters
+		"movq %[size], %%rdx\n\t"
+		"syscall"		
+		: /* 0 output */
+		: [size] "g" (size), [character] "g" (str)
+		: "%rax", "%rdi", "%rsi", "%rdx"
+		
+	);
+
+
+}
 
 
 void m_putchar(const char c){
@@ -26,7 +59,6 @@ void m_putchar(const char c){
 	: [xx] "g" (c)
 	: "%rdi"
     	);
-
 */
 	asm(
 		"movq $1, %%rax\n\t"
@@ -44,16 +76,16 @@ void m_putchar(const char c){
 }
 
 
-void m_printf(char* format,...) 
+void m_printf(char *format,...) 
 { 
-	char *character; 
-	unsigned int i; 
-	char *s; 
+	char *character;
+	unsigned int in; 
+	char *s_in; 
 	
 	va_list arg; 
 	va_start(arg, format); 
-	
-	for(character = format; *character != '\0'; character++) 
+	character = format;
+	while(*character != '\0') 
 	{ 
 		while( *character != '%' ) 
 		{ 
@@ -64,30 +96,36 @@ void m_printf(char* format,...)
 		character++; 
 		
 		switch(*character) 
-		{ 
-			case 'c' : 
-				i = va_arg(arg, int);
+		{
+			case 'c':
+				in = va_arg(arg, int);
+				m_putchar(in);
 				break; 
 						
-			case 'd' : 
-				i = va_arg(arg, int);
-				if(i<0) 
+			case 'd': 
+				in = va_arg(arg, int);
+				if(in<0) 
 				{ 
 				} 
 				break; 
 						
 			case 'o': 
-				i = va_arg(arg, unsigned int);
+				in = va_arg(arg, unsigned int);
 				break; 
 						
 			case 's': 
-				s = va_arg(arg, char*);
+				s_in = va_arg(arg, char*);
+				m_puts(s_in);
 				break; 
 						
 			case 'x': 
-				i = va_arg(arg, unsigned int);
+				in = va_arg(arg, unsigned int);
+				
+				m_putchar(in);
 				break; 
-		}	
+		}
+
+		 character++;	
 	} 
 	
 	va_end(arg); 
