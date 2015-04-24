@@ -1,6 +1,8 @@
 #include<stdio.h> 
 #include<stdarg.h>						
 
+extern int m_puts_asm(char* characters, int size);
+
 void m_puts(char *str);
 void m_putchar(const char c);
 void m_printf(char *format,...);
@@ -8,11 +10,13 @@ void m_printf(char *format,...);
 int main(void) 
 { 
 
-	char* s = "He ll ll ll oo o\n";
+	char* s = "123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789\n";
 	m_printf("Hello hello %s", s);
 
 	//register int counter asm("rdi");
 
+
+	m_printf("END\n");
 	
 	return 0;
 } 
@@ -20,17 +24,21 @@ int main(void)
 
 
 void m_puts(char *str){
-
-
+	
 	int size = 0;
 	while(str[size] != '\0'){
 		size = size +1;
 	}
 
+	char* s = "aaaaaaaaaaa";
+	m_puts_asm(s, size);
+
+	
 	printf("\nSize- %d\n", size);
+	register int counter asm("rdx");
+	counter = size;
 
-
-	asm(
+	__asm__ __volatile__	(
 		//Write syscall
 		"movq $1, %%rax\n\t"
 		//File descriptor (stdout is 0)		
@@ -38,14 +46,14 @@ void m_puts(char *str){
 		//The string to write
 		"movq %[character], %%rsi\n\t"
 		//Number of characters
-		"movq %[size], %%rdx\n\t"
-		"syscall"		
-		: /* 0 output */
-		: [size] "g" (size), [character] "g" (str)
+		//"movq %[ssize], %%rdx\n\t"
+		"syscall\n\t"
+		: // 0 output
+		: [character] "g" ( str ) //, [ssize] "g" (size)
 		: "%rax", "%rdi", "%rsi", "%rdx"
-		
 	);
 
+	
 
 }
 
